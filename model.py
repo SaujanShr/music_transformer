@@ -1,0 +1,2 @@
+class MusicTransformer:
+    pass
