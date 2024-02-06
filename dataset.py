@@ -46,8 +46,7 @@ def get_piece(path: Path) -> Piece:
 
     return piece
 
-
-def get_pieces(midi_files: Generator, sample_size:int=10) -> list[Pieces]:
+def get_pieces(midi_files, sample_size) -> list[Piece]:
     pieces = np.array([], dtype=object)
 
     for file in islice(midi_files, sample_size):
@@ -56,12 +55,14 @@ def get_pieces(midi_files: Generator, sample_size:int=10) -> list[Pieces]:
 
     return pieces
 
-def get_pieces_from_genre(genre: str) -> list[Piece]:
-    if Path(f'datasets/{genre}.npz'.is_file()):
+def get_pieces_from_genre(genre: str, sample_size:int=10) -> list[Piece]:
+    if Path(f'datasets/{genre}.npz').is_file():
         data = np.load(savedata_path, allow_pickle=True)
         return data['pieces']
 
     midi_files = Path(f'datasets/{genre}').rglob('*.mid')
-    pieces = get_pieces(midi_files)
-
+    pieces = get_pieces(midi_files, sample_size)
+    
     # np.savez(f'datasets/{genre}.npz', pieces=pieces)
+
+    return pieces
