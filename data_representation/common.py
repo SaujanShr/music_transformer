@@ -23,13 +23,12 @@ class Symbol:
             offset:float
         ):
         instrument = instrument.__class__.__name__
+
+        if pitch: pitch = pitch.midi
+        else: pitch = -1
+
         duration = ceil(duration.quarterLength * 100) / 100
         offset = ceil(offset * 100) / 100
-
-        if pitch:
-            pitch = pitch.midi
-        else:
-            pitch = -1
 
         return Symbol(instrument, pitch, duration, offset)
 
@@ -55,8 +54,13 @@ class TimeShift(Token):
 class Instrument(Token):
     instrument:str
 
+@dataclass
 class Tempo(Token):
     number:int
+
+@dataclass
+class Volume(Token):
+    velocity:float
 
 @dataclass
 class Start(Token):
