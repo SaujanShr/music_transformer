@@ -1,10 +1,12 @@
 from torch.nn import Module, Embedding
 
 class WordEmbedding(Module):
-    def __init__(self, num_embeddings: int, embedding_dim: int = 512):
+    def __init__(self, vocab_size:int, d_model:int):
         super().__init__()
-
-        self.embed = Embedding(num_embeddings, embedding_dim)
+        
+        self.embed = Embedding(vocab_size, d_model)
 
     def forward(self, x):
-        return self.embed(x)
+        x = self.embed(x)
+
+        return x

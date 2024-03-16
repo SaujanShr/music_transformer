@@ -1,25 +1,28 @@
 from torch.nn import Module, LayerNorm, Dropout
 
-from model.multi_head_attention import MultiheadAttention
+from model.relative_attention import RelativeAttention
 from model.feed_forward import FeedForward
 
 class DecoderLayer(Module):
-    def __init__(self, embedding_dim=512, ff_dim=8, num_heads=8, dropout=0):
+    def __init__(self, 
+            d_model:int, d_ff:int, 
+            dropout:int, max_seq_len:int
+        ):
         super().__init__()
 
-        self.msa_layer = MultiheadAttention(embedding_dim, num_heads)
-        self.ff_layer = FeedForward(embedding_dim, ff_dim)
+        self.mha_layer = RelativeAttention(d_model, max_seq_len)
+        self.ff_layer = FeedForward(d_model, d_ff)
 
-        self.msa_norm = LayerNorm(embedding_dim)
-        self.ff_norm = LayerNorm(embedding_dim)
+        self.mha_norm = LayerNorm(d_model)
+        self.ff_norm = LayerNorm(d_model)
 
-        self.dropout = Dropout(dropout)
+        self.out = Dropout(dropout)
 
-    def forward(x, mask=None):
-        out = self.msa_layer(x, x, x, mask)
-        x = self.msa_norm(x + self.dropout(out))
+    def forward(x):
+        x = self.mha_layer(x)
+        x = self.mha_norm(x + self.dropout(out))
 
-        out = self.ff_layer(x)
+        x = self.ff_layer(x)
         x = self.ff_norm(x + self.dropout(out))
 
         return x

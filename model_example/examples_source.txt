@@ -1,3 +1,0 @@
-Examples taken from https://www.datacamp.com/tutorial/building-a-transformer-with-py-torch
-
-Purely using for learning purposes.
