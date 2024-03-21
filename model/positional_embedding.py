@@ -24,6 +24,7 @@ class PositionalEmbedding(Module):
         self.register_buffer('pe', pe)
 
     def forward(self, x):
+        # x.shape = (batch_size, seq_len, d_model)
         _, seq_len, _ = x.shape
 
         x *= self.scale

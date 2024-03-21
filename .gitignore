@@ -1,2 +1,5 @@
-data_representation/__pycache__
+common/__pycache__
 model/__pycache__
+preprocessing/__pycache__
+training/__pycache__
+venv/

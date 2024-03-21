@@ -19,6 +19,6 @@ class Decoder(Module):
 
     def forward(self, x):
         for decoder_layer in self.decoder_layers:
-            x = self.decoder_layer(x)
+            x = decoder_layer(x)
         
         return x

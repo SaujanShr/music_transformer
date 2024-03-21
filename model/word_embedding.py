@@ -7,6 +7,7 @@ class WordEmbedding(Module):
         self.embed = Embedding(vocab_size, d_model)
 
     def forward(self, x):
+        # x.shape = (batch_size, seq_len, d_model)
         x = self.embed(x)
-
+        
         return x

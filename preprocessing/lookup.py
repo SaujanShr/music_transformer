@@ -1,3 +1,5 @@
+from numpy import save, load
+
 from common.common import (
     PITCHES, TIME_SHIFTS, TEMPOS
 )
@@ -42,15 +44,20 @@ class Lookup:
             for (mapping, token) in self.mapping.items()
         }
 
+
     def _increment(self):
         self.counter += 1
         return self.counter
 
-    def update_mapping(self, tokens):
+    def update_instruments(self, tokens):
+        instruments = { 
+            token.instrument for token in tokens 
+            if isinstance(token, Instrument)
+        }
         unknown_mapping = {
-            self._increment() : Instrument(token.instrument)
-            for token in tokens
-            if not token.__str__() in self.mapping
+            self._increment() : Instrument(instrument)
+            for instrument in instruments
+            if not Instrument(instrument).__str__() in self.mapping
         }
 
         self.mapping |= unknown_mapping
@@ -76,4 +83,4 @@ class Lookup:
         ]
     
     def size(self):
-        return len(self.mapping)
+        return self.counter + 1

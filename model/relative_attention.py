@@ -51,7 +51,7 @@ class RelativeAttention(Module):
         s_rel = self.s_rel(q, seq_len)
 
         qk_t = q @ k_t
-        logits = (q + srel) / self.h_factor
+        logits = (qk_t + s_rel) / self.h_factor
 
         masked = logits.masked_fill(mask==0, -1e9)
 
@@ -61,7 +61,7 @@ class RelativeAttention(Module):
             .transpose(1, 2) \
             .reshape(batch_size, seq_len, -1)
         
-        x = self.dropout(out)
+        x = self.out(out)
 
         return x
 
@@ -69,7 +69,7 @@ class RelativeAttention(Module):
     def s_rel(self, q, seq_len):
         # Pad
         start = max(0, self.max_seq_len - seq_len)
-        left_embedding = self.E[start:,:] \
+        left_embedding = self.Er[start:,:] \
             .transpose(0, 1)
 
         qE = q @ left_embedding

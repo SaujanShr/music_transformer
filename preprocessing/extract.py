@@ -95,23 +95,12 @@ def extract(genre, sample_size=None):
     Returns:
         pieces (list[list[Symbol]]): List of symbols for each midi file
     '''
-    dataset_fp = f'resources/{genre}_{sample_size}.npz'
     midi_fp = f'resources/{genre}'
-
-    # If the midi files have already been parsed and saved, load the save.
-    if Path(dataset_fp).is_file():
-        data = load(dataset_fp, allow_pickle=True)
-        return data['data'].tolist()
-
 
     midi_files = Path(midi_fp).rglob('*.mid')
     if sample_size:
         midi_files = islice(midi_files, sample_size)
 
     pieces = process_map(_get_symbols, midi_files, max_workers=6)
-    data = array(pieces, dtype=object)
-
-    # Save the parsed files to load next time.
-    savez(dataset_fp, data=data)
 
     return pieces

@@ -1,7 +1,0 @@
-@article{ferreira_aiide_2020,
-  title={Computer-Generated Music for Tabletop Role-Playing Games},
-  author={Ferreira, Lucas N and Lelis, Levi HS and Whitehead, Jim},
-  booktitle = {Proceedings of the 16th AAAI Conference on Artificial Intelligence and Interactive Digital Entertainment},
-  series = {AIIDE'20},
-  year={2020},
-}

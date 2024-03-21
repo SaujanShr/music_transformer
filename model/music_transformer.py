@@ -1,15 +1,18 @@
-from torch.nn import Module, Softmax
+from torch.nn import Module, Softmax, Dropout, Linear
 from torch import long, cat
 from torch.distributions import OneHotCategorical
 
-from common.common import DEVICE
+from common import config
+from common.config import DEVICE
 from model.decoder import Decoder
+from model.word_embedding import WordEmbedding
+from model.positional_embedding import PositionalEmbedding
 
 class MusicTransformer(Module):
     def __init__(self, vocab_size, 
-        d_model=512, d_ff=2048,
-        num_layers=8, dropout=0.1,
-        max_seq_len=100):
+        d_model=config.EMBEDDING_SIZE, d_ff=config.FEEDFORWARD_SIZE,
+        num_layers=config.NUM_LAYERS, dropout=config.DROPOUT,
+        max_seq_len=config.MAX_SEQUENCE_LENGTH):
         super().__init__()
 
         if d_model % 64:
@@ -39,25 +42,26 @@ class MusicTransformer(Module):
         x = self.dropout(x)
 
         x = self.decoder(x)
-
         x = self.out(x)
-
+        
         return x
 
-    def generate(self, primer=[], max_seq_len=1024):
+    def generate(self, 
+        primer=config.PRIMER, 
+        max_seq_len=config.MAX_GENERATION_LENGTH):
         arr = primer
         res = primer
 
         for i in range(max_seq_len):
             result = self.forward(arr).softmax(-1)
 
-            pdf = OneHotCategorical(prob=result[:, -1])
+            pdf = OneHotCategorical(probs=result[:, -1])
 
             result = pdf.sample().argmax(-1).unsqueeze(-1)
 
-            decode_array = cat((decode_array, result), dim=-1)
-            result_array = cat((result_array, result), dim=-1)
+            arr = cat((arr, result), dim=-1)
+            res = cat((res, result), dim=-1)
 
-        result_array = result_array[0]
+        res = res[0]
 
-        return result_array
+        return res

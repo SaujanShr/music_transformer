@@ -11,8 +11,8 @@ class FeedForward(Module):
 
     def forward(self, x):
         x = self.layer_1(x)
-        x = self.relu(out)
+        x = self.relu(x)
         
         x = self.layer_2(x)
 
-        return out
+        return x

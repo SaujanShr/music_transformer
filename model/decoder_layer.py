@@ -10,19 +10,19 @@ class DecoderLayer(Module):
         ):
         super().__init__()
 
-        self.mha_layer = RelativeAttention(d_model, max_seq_len)
+        self.ra_layer = RelativeAttention(d_model, max_seq_len)
         self.ff_layer = FeedForward(d_model, d_ff)
 
-        self.mha_norm = LayerNorm(d_model)
+        self.ra_norm = LayerNorm(d_model)
         self.ff_norm = LayerNorm(d_model)
 
-        self.out = Dropout(dropout)
+        self.dropout = Dropout(dropout)
 
-    def forward(x):
-        x = self.mha_layer(x)
-        x = self.mha_norm(x + self.dropout(out))
+    def forward(self, x):
+        x = self.ra_layer(x)
+        x = self.ra_norm(x + self.dropout(x))
 
         x = self.ff_layer(x)
-        x = self.ff_norm(x + self.dropout(out))
+        x = self.ff_norm(x + self.dropout(x))
 
         return x
