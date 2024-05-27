@@ -1,6 +1,4 @@
 from dataclasses import dataclass
-from decimal import Decimal
-from math import ceil, floor
 from re import findall
 
 def _pad_camel_case(s):
@@ -8,10 +6,10 @@ def _pad_camel_case(s):
     Space out the camel-case-seperated words in the string.
 
     Parameters:
-        s (str): Camel-case string
+        s (str): Camel-case string.
 
     Returns:
-        spaced (str): Spaced out string
+        spaced (str): Spaced out string.
     '''
     words = findall(r'[A-Z](?:[a-z]+|[A-Z]*(?=[A-Z]|$))', s)
     spaced = ' '.join(words)
@@ -29,14 +27,14 @@ class Symbol:
 
     def build(instrument, pitch, duration, tempo, offset):
         '''
-        Builds a symbol object from music21 objects.
+        Build a symbol object from music21 objects.
 
         Parameters:
-            instrument (Instrument): The music21 instrument object
-            pitch (Pitch): The music21 pitch object
-            duration (Duration): The music21 duration object
-            tempo (MetronomeMark): The music21 MetronomeMark object
-            offset (OffsetQL): The music21 offset value
+            instrument (Instrument): The music21 instrument object.
+            pitch (Pitch): The music21 pitch object.
+            duration (Duration): The music21 duration object.
+            tempo (MetronomeMark): The music21 MetronomeMark object.
+            offset (OffsetQL): The music21 offset value.
 
         Returns:
             symbol (Symbol): The built symbol.
@@ -47,7 +45,7 @@ class Symbol:
         else: pitch = -1
 
         duration = round(duration.quarterLength*100)
-        tempo = ceil(tempo.number)
+        tempo = round(tempo.number, -1)
         offset = round(offset*100)
 
         symbol = Symbol(instrument, pitch, duration, tempo, offset)

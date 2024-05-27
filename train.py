@@ -1,26 +1,16 @@
-from argparse import ArgumentParser
-
-from torch.optim import Adam
-from torch import tensor
-
 from common import config
-from preprocessing.preprocessing import Preprocessing
+from preprocessing.preprocessor import Preprocessor
 from model.music_transformer import MusicTransformer
 from training.trainer import Trainer
 
-parser = ArgumentParser("train")
-parser.add_argument("genre", help="Genre of music")
-args = parser.parse_args()
+preprocessor = Preprocessor()
 
-genre = args.genre
+print(f'torch using device:{config.DEVICE}')
 
-preprocessing = Preprocessing(genre)
+vocab_size = preprocessor.get_vocabulary_size()
+transformer = MusicTransformer(vocab_size).to(config.DEVICE)
 
-print(config.DEVICE)
-transformer = MusicTransformer(preprocessing.size()).to(config.DEVICE)
+samples = preprocessor.get_samples()
+trainer = Trainer(transformer, samples)
 
-trainer = Trainer(transformer)
-
-samples = preprocessing.get_samples()
-
-trainer.train(samples)
+trainer.train()

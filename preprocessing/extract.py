@@ -1,13 +1,11 @@
 from pathlib import Path
 
-from tqdm.contrib.concurrent import process_map
-from itertools import islice, chain
-
-from numpy import array, load, savez
+from tqdm.contrib.concurrent import thread_map
+from itertools import chain
+from random import shuffle
 
 from music21.converter import parse
-from music21.stream.base import Stream
-from music21.instrument import Instrument, partitionByInstrument
+from music21.instrument import Piano, partitionByInstrument
 from music21.chord import Chord
 from music21.percussion import PercussionChord
 from music21.note import Note, Unpitched
@@ -23,13 +21,13 @@ def _part_to_symbols(part):
     then only the first instrument is counted.
 
     Parameters:
-        part (Stream): Stream partition
+        part (Stream): The stream partition.
 
     Returns:
-        symbols (list[Symbol]): List of symbols
+        symbols (list[Symbol]): The symbols.
     '''
     if part.getInstrument() == None:
-        instrument = Instrument()
+        instrument = Piano()
     else:
         instrument = part.getInstrument()
     
@@ -63,13 +61,13 @@ def _part_to_symbols(part):
 
 def _get_symbols(file):
     '''
-    Parse the midi file to a stream and extract symbols from the stream.
+    Parse the MIDI file to a stream and extract symbols from the stream.
 
     Parameters:
-        file (Path): Path to midi file
+        file (Path): The path to the MIDI file.
 
     Returns:
-        symbols (list[Symbol]): List of symbols
+        symbols (list[Symbol]): The symbols.
     '''
     midi = parse(file)
     parts = partitionByInstrument(midi)
@@ -83,24 +81,25 @@ def _get_symbols(file):
 
 def extract(genre, sample_size=None):
     '''
-    Parse the midi files from the given genre of music
-    and extract symbols for each midi file.
+    Parse the MIDI files from the given genre of music
+    and extract symbols for each MIDI file.
 
     If a sample size is given, then only parse that number of files.
 
     Parameters:
-        genre (str): Genre of music
-        sample_size (int): Number of midi files to parse
+        genre (str): The genre of music.
+        sample_size (int): The number of MIDI files to parse.
 
     Returns:
-        pieces (list[list[Symbol]]): List of symbols for each midi file
+        pieces (list[list[Symbol]]): The symbols of each MIDI file.
     '''
     midi_fp = f'resources/{genre}'
 
-    midi_files = Path(midi_fp).rglob('*.mid')
+    midi_files = [file for file in Path(midi_fp).rglob('*.mid')]
+    shuffle(midi_files)
     if sample_size:
-        midi_files = islice(midi_files, sample_size)
-
-    pieces = process_map(_get_symbols, midi_files, max_workers=6)
+        midi_files = midi_files[:sample_size]
+    
+    pieces = thread_map(_get_symbols, midi_files, max_workers=6)
 
     return pieces

@@ -1,9 +1,7 @@
 from torch.nn import Module, Softmax, Dropout, Linear
-from torch import long, cat
-from torch.distributions import OneHotCategorical
+from torch import tril, ones
 
 from common import config
-from common.config import DEVICE
 from model.decoder import Decoder
 from model.word_embedding import WordEmbedding
 from model.positional_embedding import PositionalEmbedding
@@ -12,13 +10,26 @@ class MusicTransformer(Module):
     def __init__(self, vocab_size, 
         d_model=config.EMBEDDING_SIZE, d_ff=config.FEEDFORWARD_SIZE,
         num_layers=config.NUM_LAYERS, dropout=config.DROPOUT,
-        max_seq_len=config.MAX_SEQUENCE_LENGTH):
+        max_seq_len=config.MAX_SEQUENCE_LENGTH,
+        device=config.DEVICE):
+        '''
+        Initialise the Music Transformer.
+
+        Parameters:
+            vocab_size (int): The number of tokens in the vocabulary.
+            d_model (int): The embedding size.
+            d_ff (int): The feedforward output size.
+            num_layers (int): The number of decoder layers.
+            dropout (float): The dropout rate.
+            max_seq_len (int): The maximum input sequence length.
+            device (DeviceLikeType): The device the model runs on (CPU/GPU).
+        '''
         super().__init__()
 
         if d_model % 64:
             raise ValueError("Invalid embedding dimensionality")
-
-        self.vocab_size = vocab_size
+        
+        self.device = device
 
         self.word_embedding = WordEmbedding(vocab_size, d_model)
         self.positional_embedding = PositionalEmbedding(d_model, max_seq_len)
@@ -32,36 +43,35 @@ class MusicTransformer(Module):
 
         self.out = Linear(d_model, vocab_size)
         self.softmax = Softmax(dim = -1)
-    
-    def set_end_token(self, token):
-        self.end_token = token
+
+        self.register_buffer(
+            "mask",
+            tril(ones(max_seq_len, max_seq_len))
+                .unsqueeze(0)
+                .unsqueeze(0)
+        )
+        # mask.shape = (1, 1, seq_len, seq_len)
 
     def forward(self, x):
+        '''
+        Forward pass of the Music Transformer.
+
+        Parameters:
+            x (tensor[batch_size, seq_len]): The input sequence.
+
+        Returns:
+            x (tensor[batch_size, seq_len, vocab_size]): The output data.
+        '''
         x = self.word_embedding(x)
+        # x.shape = (batch_size, seq_len, d_model)
         x = self.positional_embedding(x)
         x = self.dropout(x)
 
-        x = self.decoder(x)
+        _, seq_len, _ = x.shape
+        mask = self.mask[:, :, :seq_len, :seq_len]
+        # mask.shape = (1, 1, seq_len, seq_len)
+
+        x = self.decoder(x, mask)
         x = self.out(x)
         
         return x
-
-    def generate(self, 
-        primer=config.PRIMER, 
-        max_seq_len=config.MAX_GENERATION_LENGTH):
-        arr = primer
-        res = primer
-
-        for i in range(max_seq_len):
-            result = self.forward(arr).softmax(-1)
-
-            pdf = OneHotCategorical(probs=result[:, -1])
-
-            result = pdf.sample().argmax(-1).unsqueeze(-1)
-
-            arr = cat((arr, result), dim=-1)
-            res = cat((res, result), dim=-1)
-
-        res = res[0]
-
-        return res

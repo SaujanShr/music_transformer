@@ -7,6 +7,15 @@ from common.token import (
 )
 
 def _encode_tokens(symbols):
+    '''
+    Partition a symbol sequence into token sets partitioned by the offset the tokens are triggered on.
+
+    Parameters:
+        symbols (list[Symbol]): The symbols.
+
+    Returns:
+        timed_tokens (list[tuple[int, list[Token]]]): The partitioned tokens.
+    '''
     encoded_symbols = {}
 
     for symbol in symbols:
@@ -24,9 +33,21 @@ def _encode_tokens(symbols):
         encoded_symbols[on_offset] += [Instrument(instrument), Tempo(tempo), NoteOn(pitch)]
         encoded_symbols[off_offset] += [Instrument(instrument), Tempo(tempo), NoteOff(pitch)]
 
-    return sorted(encoded_symbols.items())
+    timed_tokens = sorted(encoded_symbols.items())
+
+    return timed_tokens
 
 def _get_time_shift_sequence(prev_offset, next_offset):
+    '''
+    Get sequence of time shifts that represent the change in time between the previous and next offsets.
+
+    Parameters:
+        prev_offset (int): The previous offset.
+        next_offset (int): The next offset.
+
+    Returns:
+        time_shift_sequence (list[TimeShift]): The time shift sequence.
+    '''
     shift_duration = next_offset - prev_offset
     seconds = floor(shift_duration/100)
     
@@ -38,6 +59,15 @@ def _get_time_shift_sequence(prev_offset, next_offset):
     return time_shift_sequence
 
 def _insert_time_shifts(timed_tokens):
+    '''
+    Create a token sequence from token sets partitioned by their offset times.
+
+    Parameters:
+        timed_tokens (list[tuple[int, list[Token]]]): The partitioned tokens.
+
+    Returns:
+        tokens (list[Token]): The token sequence.
+    '''
     prev_offset = timed_tokens[0][0]
     tokens = _get_time_shift_sequence(0, prev_offset) + timed_tokens[0][1]
 
@@ -50,6 +80,15 @@ def _insert_time_shifts(timed_tokens):
     return tokens
 
 def _remove_duplicates(tokens):
+    '''
+    Filter out duplicate instrument and tempo token sequences and returns the filtered tokens.
+
+    Parameters:
+        tokens (list[Token]): The tokens.
+
+    Returns:
+        filtered_tokens (list[Token]): The filtered tokens.
+    '''
     filtered_tokens = []
 
     prev_instrument = None
@@ -70,8 +109,19 @@ def _remove_duplicates(tokens):
 
 
 def tokenise(symbols):
+    '''
+    Convert symbols into token objects.
+
+    Parameters:
+        symbols (list[Symbol]): The symbols.
+
+    Returns:
+        tokens (list[Token]): The tokens.
+    '''
     timed_tokens = _encode_tokens(symbols)
     unfiltered_tokens = _insert_time_shifts(timed_tokens)
     tokens = _remove_duplicates(unfiltered_tokens)
 
-    return [Start()] + tokens + [End()]
+    tokens = [Start()] + tokens + [End()]
+
+    return tokens
